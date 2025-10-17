@@ -1,0 +1,39 @@
+#include <windows.h>
+#include "version.h"
+
+// Application icon
+IDI_ICON1 ICON "KtoMIDI.ico"
+
+// Version information
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     KTOMIDI_VERSION_MAJOR,KTOMIDI_VERSION_MINOR,KTOMIDI_VERSION_PATCH,KTOMIDI_VERSION_BUILD
+PRODUCTVERSION  KTOMIDI_VERSION_MAJOR,KTOMIDI_VERSION_MINOR,KTOMIDI_VERSION_PATCH,KTOMIDI_VERSION_BUILD
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+FILEFLAGS       VS_FF_DEBUG
+#else
+FILEFLAGS       0x0L
+#endif
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"  // English (US)
+        BEGIN
+            VALUE "CompanyName",        KTOMIDI_COMPANY_NAME "\0"
+            VALUE "FileDescription",    KTOMIDI_APP_DESCRIPTION "\0"
+            VALUE "FileVersion",        KTOMIDI_VERSION_FULL "\0"
+            VALUE "InternalName",       KTOMIDI_APP_NAME "\0"
+            VALUE "LegalCopyright",     KTOMIDI_COPYRIGHT "\0"
+            VALUE "OriginalFilename",   KTOMIDI_APP_NAME ".exe\0"
+            VALUE "ProductName",        KTOMIDI_APP_NAME "\0"
+            VALUE "ProductVersion",     KTOMIDI_VERSION_STRING "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200  // English (US)
+    END
+END
