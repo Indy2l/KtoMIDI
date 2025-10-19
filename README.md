@@ -1,6 +1,6 @@
 # KtoMIDI
 
-Windows utility for converting keycode input to MIDI messages.
+Windows utility for converting keycode input to MIDI messages!
 
 ## Preview:
 ![Preview image](/images/preview.png?raw=true)
