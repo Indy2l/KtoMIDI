@@ -66,7 +66,10 @@ void KeyHook::uninstallHook()
         m_hookInstalled = false;
     }
 
-    m_pressedKeys.clear();
+    {
+        QMutexLocker locker(&m_stateMutex);
+        m_pressedKeys.clear();
+    }
 }
 
 bool KeyHook::isHookInstalled() const
@@ -76,30 +79,25 @@ bool KeyHook::isHookInstalled() const
 
 void KeyHook::setSuppressedRepeatKeys(const QSet<int> &vkCodes)
 {
+    QMutexLocker locker(&m_stateMutex);
     m_suppressedRepeatKeys = vkCodes;
 }
 
 LRESULT CALLBACK KeyHook::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    QMutexLocker locker(&s_instanceMutex);
-    if (nCode >= 0 && s_instance != nullptr) {
+    bool suppressEvent = false;
+
+    if (nCode == HC_ACTION) {
         const KBDLLHOOKSTRUCT* pkbhs = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
-        const int vkCode = static_cast<int>(pkbhs->vkCode);
-        const bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
-        bool isRepeat = false;
 
-        if (isKeyDown) {
-            isRepeat = s_instance->updateRepeatState(vkCode, true);
-        } else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
-            s_instance->updateRepeatState(vkCode, false);
+        QMutexLocker locker(&s_instanceMutex);
+        if (s_instance != nullptr) {
+            suppressEvent = s_instance->handleHookEvent(wParam, pkbhs);
         }
+    }
 
-        if (s_instance->shouldSuppressKey(vkCode, isRepeat)) {
-            s_instance->processKeyEvent(vkCode, isKeyDown, isRepeat);
-            return 1;
-        }
-
-        s_instance->processKeyEvent(vkCode, isKeyDown, isRepeat);
+    if (suppressEvent) {
+        return 1;
     }
 
     return CallNextHookEx(nullptr, nCode, wParam, lParam);
@@ -107,16 +105,27 @@ LRESULT CALLBACK KeyHook::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM 
 
 bool KeyHook::shouldSuppressKey(int vkCode, bool isRepeat) const
 {
+    QMutexLocker locker(&m_stateMutex);
     return isRepeat && m_suppressedRepeatKeys.contains(vkCode);
 }
 
 void KeyHook::processKeyEvent(int vkCode, bool isKeyDown, bool isRepeat)
+{
+    QMetaObject::invokeMethod(this, "emitKeyPressed",
+                              Qt::QueuedConnection,
+                              Q_ARG(int, vkCode),
+                              Q_ARG(bool, isKeyDown),
+                              Q_ARG(bool, isRepeat));
+}
+
+void KeyHook::emitKeyPressed(int vkCode, bool isKeyDown, bool isRepeat)
 {
     emit keyPressed(vkCode, isKeyDown, isRepeat);
 }
 
 bool KeyHook::updateRepeatState(int vkCode, bool isKeyDown)
 {
+    QMutexLocker locker(&m_stateMutex);
     if (isKeyDown) {
         if (m_pressedKeys.contains(vkCode)) {
             return true;
@@ -127,4 +136,21 @@ bool KeyHook::updateRepeatState(int vkCode, bool isKeyDown)
     }
 
     return false;
+}
+
+bool KeyHook::handleHookEvent(WPARAM wParam, const KBDLLHOOKSTRUCT *pkbhs)
+{
+    const int vkCode = static_cast<int>(pkbhs->vkCode);
+    const bool isKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+    bool isRepeat = false;
+
+    if (isKeyDown) {
+        isRepeat = updateRepeatState(vkCode, true);
+    } else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+        updateRepeatState(vkCode, false);
+    }
+
+    const bool suppress = shouldSuppressKey(vkCode, isRepeat);
+    processKeyEvent(vkCode, isKeyDown, isRepeat);
+    return suppress;
 }

@@ -1,5 +1,12 @@
 #include "MainWindow.h"
+#if __has_include("version.h")
 #include "version.h"
+#else
+#define KTOMIDI_VERSION_STRING "0.0.0"
+#define KTOMIDI_APP_NAME "KtoMIDI"
+#define KTOMIDI_APP_DESCRIPTION "Keycode to MIDI converter"
+#define KTOMIDI_COMPANY_NAME "KtoMIDI Project"
+#endif
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QMessageBox>

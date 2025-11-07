@@ -1,7 +1,9 @@
 #include "MainWindow.h"
 #include "KeyUtils.h"
+#include <QMouseEvent>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QtGlobal>
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QHeaderView>
@@ -16,7 +18,14 @@
 #include <QFile>
 #include <QSettings>
 #include <windows.h>
+#if __has_include("version.h")
 #include "version.h"
+#else
+#define KTOMIDI_VERSION_STRING "0.0.0"
+#define KTOMIDI_APP_NAME "KtoMIDI"
+#define KTOMIDI_APP_DESCRIPTION "Keycode to MIDI converter"
+#define KTOMIDI_COMPANY_NAME "KtoMIDI Project"
+#endif
 
 namespace {
     constexpr int STATUS_MESSAGE_TIMEOUT_MS = 3000;
@@ -38,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setupUI();
     setupSystemTray();
+    qApp->installEventFilter(this);
     
     m_keyHook = new KeyHook(this);
     m_midiEngine = new MidiEngine(this);
@@ -78,6 +88,7 @@ MainWindow::~MainWindow()
     if (m_keyHook) {
         m_keyHook->uninstallHook();
     }
+    qApp->removeEventFilter(this);
 }
 
 void MainWindow::setupUI()
@@ -93,7 +104,6 @@ void MainWindow::setupUI()
     
     m_tabWidget = new QTabWidget(this);
     
-    // Add version label to tab bar corner
     QLabel *versionLabel = new QLabel(QString("v%1").arg(KTOMIDI_VERSION_STRING));
     versionLabel->setStyleSheet("color: gray; font-size: 10pt; padding-right: 8px;");
     m_tabWidget->setCornerWidget(versionLabel, Qt::TopRightCorner);
@@ -197,6 +207,8 @@ void MainWindow::setupMappingTable()
     
     connect(m_mappingTable, &QTableWidget::itemSelectionChanged,
             this, &MainWindow::onMappingTableSelectionChanged);
+
+    m_mappingTable->viewport()->installEventFilter(this);
     
     mappingLayout->addWidget(m_mappingTable);
     
@@ -619,6 +631,56 @@ void MainWindow::onMappingTableSelectionChanged()
     bool hasSelection = m_mappingTable->currentRow() >= 0;
     m_removeMappingButton->setEnabled(hasSelection);
     m_editMappingButton->setEnabled(hasSelection);
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (m_mappingTable && watched == m_mappingTable->viewport() && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        QModelIndex idx = m_mappingTable->indexAt(mouseEvent->pos());
+        if (!idx.isValid()) {
+            m_mappingTable->clearSelection();
+            m_mappingTable->setCurrentCell(-1, -1);
+            m_mappingTable->clearFocus();
+            onMappingTableSelectionChanged();
+            return true;
+        }
+    }
+
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+    QPoint globalPos;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    globalPos = mouseEvent->globalPosition().toPoint();
+#else
+    globalPos = mouseEvent->globalPos();
+#endif
+        QWidget *clickedWidget = QApplication::widgetAt(globalPos);
+
+        bool clickedInsideMappingTable = false;
+        bool clickedInsideMappingDialog = false;
+
+        if (clickedWidget) {
+            if (m_mappingTable && (m_mappingTable == clickedWidget || m_mappingTable->isAncestorOf(clickedWidget))) {
+                clickedInsideMappingTable = true;
+            }
+            if (m_currentMappingDialog && (m_currentMappingDialog == clickedWidget || m_currentMappingDialog->isAncestorOf(clickedWidget))) {
+                clickedInsideMappingDialog = true;
+            }
+        }
+
+        if (!clickedInsideMappingTable && !clickedInsideMappingDialog) {
+            if (m_mappingTable && m_mappingTable->selectionModel() && m_mappingTable->selectionModel()->hasSelection()) {
+                m_mappingTable->clearSelection();
+                    m_mappingTable->setCurrentCell(-1, -1);
+                    m_mappingTable->clearFocus();
+                    this->setFocus();
+                    onMappingTableSelectionChanged();
+            }
+        }
+    }
+
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void MainWindow::updateMappingTable()
