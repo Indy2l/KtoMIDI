@@ -28,6 +28,14 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
 endif()
 
+
+# Set output directory for Release builds
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release)
+endif()
+
 if(MSVC)
     add_compile_options(/W4 /WX- /permissive- /Zc:__cplusplus)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -162,19 +170,21 @@ endif()
 if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
     set(QT6_BIN_DIR "${VCPKG_INSTALLED_DIR}/bin")
     set(QT6_PLUGINS_DIR "${VCPKG_INSTALLED_DIR}/Qt6/plugins")
-    
+    set(RELEASE_DIR "${CMAKE_BINARY_DIR}/Release")
+
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${QT6_BIN_DIR}/Qt6Core.dll"
-        "${QT6_BIN_DIR}/Qt6Gui.dll" 
+        "${QT6_BIN_DIR}/Qt6Gui.dll"
         "${QT6_BIN_DIR}/Qt6Widgets.dll"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>
-        COMMENT "Deploying Qt6 runtime libraries")
-    
+        "${VCPKG_INSTALLED_DIR}/bin/rtmidi.dll"
+        "${RELEASE_DIR}"
+        COMMENT "Deploying Qt6 and rtmidi runtime libraries to Release folder")
+
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DIR}/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${QT6_PLUGINS_DIR}/platforms/qwindows.dll"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms/
-        COMMENT "Copying Qt6 platform plugins")
+        "${RELEASE_DIR}/platforms/"
+        COMMENT "Copying Qt6 platform plugins to Release folder")
 endif()
