@@ -51,6 +51,7 @@ else()
     message(FATAL_ERROR "VCPKG_ROOT environment variable not set. Please set it to your vcpkg installation path.")
 endif()
 
+set(CMAKE_PREFIX_PATH "${VCPKG_INSTALLED_DIR}/share/qt6" ${CMAKE_PREFIX_PATH})
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
 
 set(CMAKE_AUTOMOC ON)
