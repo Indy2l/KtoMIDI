@@ -37,7 +37,7 @@ echo [2/4] Configuring CMake build...
 mkdir build
 cd build
 
-cmake .. -DCMAKE_TOOLCHAIN_FILE="%VCPKG_TOOLCHAIN%"
+cmake .. -DCMAKE_TOOLCHAIN_FILE="%VCPKG_TOOLCHAIN%" -DCMAKE_BUILD_TYPE=Release
 if errorlevel 1 (
     echo ERROR: CMake configuration failed!
     echo Please ensure:
