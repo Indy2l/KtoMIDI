@@ -1,4 +1,10 @@
+
 cmake_minimum_required(VERSION 3.20)
+
+# Prevent in-source builds (keep build artifacts out of root)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory and run CMake from there (e.g., mkdir build && cd build && cmake ..)")
+endif()
 
 project(KtoMIDI 
     VERSION 1.0.2
@@ -14,13 +20,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Generate version.h from template
-set(GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
-file(MAKE_DIRECTORY "${GENERATED_INCLUDE_DIR}")
 
+# Set a single generated output directory inside build/
+set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
+file(MAKE_DIRECTORY "${GENERATED_DIR}")
+
+# Generate version.h from template into generated/
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
-    "${GENERATED_INCLUDE_DIR}/version.h"
+    "${GENERATED_DIR}/version.h"
     @ONLY
 )
 
@@ -120,6 +128,7 @@ else()
     add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${RESOURCES})
 endif()
 
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME "KtoMIDI"
     VERSION ${PROJECT_VERSION}
@@ -127,9 +136,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+# Always include the generated directory for headers
 target_include_directories(${PROJECT_NAME} PRIVATE 
     src/
-    "${GENERATED_INCLUDE_DIR}"
+    "${GENERATED_DIR}"
 )
 
 
