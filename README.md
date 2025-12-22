@@ -60,20 +60,22 @@ vcpkg install rtmidi:x64-windows
 ### Build with deploy.bat (Easiest)
 
 1. Set the `VCPKG_ROOT` environment variable to your vcpkg installation path
-2. Run the build script
+2. Make sure you have installed the dependencies above with vcpkg.
+3. Run `deploy.bat` from the project root directory.
 
-The built executable will be in `build\Release\KtoMIDI.exe` with all dependencies.
+The built executable and all required DLLs will be in `build\Release\KtoMIDI.exe`.
 
 ### Manual Build (If deploy.bat fails)
 
-```bash
+```bat
 mkdir build
 cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
+cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 
-The executable will be in `build\Release\KtoMIDI.exe`.
+- This method uses the vcpkg toolchain file for dependency resolution.
+- The executable and dependencies will be in `build\Release\KtoMIDI.exe`.
 
 ## License
 

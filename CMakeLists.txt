@@ -48,19 +48,14 @@ else()
     endif()
 endif()
 
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        CACHE STRING "vcpkg toolchain file")
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_PREFIX_PATH)
+    set(CMAKE_PREFIX_PATH "$ENV{VCPKG_ROOT}/installed/x64-windows" CACHE STRING "vcpkg installed path" FORCE)
 endif()
 
-if(DEFINED ENV{VCPKG_ROOT})
-    set(VCPKG_INSTALLED_DIR "$ENV{VCPKG_ROOT}/installed/x64-windows")
-else()
-    message(FATAL_ERROR "VCPKG_ROOT environment variable not set. Please set it to your vcpkg installation path.")
-endif()
 
-set(CMAKE_PREFIX_PATH "${VCPKG_INSTALLED_DIR}/share/qt6" ${CMAKE_PREFIX_PATH})
+# Use CMake's find_package for dependencies
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+find_package(RtMidi REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -134,25 +129,21 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
     src/
-    "${VCPKG_INSTALLED_DIR}/include"
     "${GENERATED_INCLUDE_DIR}"
 )
+
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::Gui
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
     user32
     kernel32
     winmm
     setupapi
     hid
+    RtMidi::rtmidi
 )
-
-target_link_libraries(${PROJECT_NAME} PRIVATE "${VCPKG_INSTALLED_DIR}/lib/rtmidi.lib")
 
 if(MSVC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE 
@@ -168,23 +159,25 @@ if(MSVC)
 endif()
 
 if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(QT6_BIN_DIR "${VCPKG_INSTALLED_DIR}/bin")
-    set(QT6_PLUGINS_DIR "${VCPKG_INSTALLED_DIR}/Qt6/plugins")
     set(RELEASE_DIR "${CMAKE_BINARY_DIR}/Release")
 
+    # Copy Qt DLLs using target properties
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${QT6_BIN_DIR}/Qt6Core.dll"
-        "${QT6_BIN_DIR}/Qt6Gui.dll"
-        "${QT6_BIN_DIR}/Qt6Widgets.dll"
-        "${VCPKG_INSTALLED_DIR}/bin/rtmidi.dll"
-        "${RELEASE_DIR}"
+            $<TARGET_FILE:Qt6::Core>
+            $<TARGET_FILE:Qt6::Gui>
+            $<TARGET_FILE:Qt6::Widgets>
+            $<TARGET_FILE:RtMidi::rtmidi>
+            "${RELEASE_DIR}"
         COMMENT "Deploying Qt6 and rtmidi runtime libraries to Release folder")
 
+    # Copy Qt platform plugin (qwindows)
+    get_target_property(QT6_PLUGINS_DIR Qt6::Core LOCATION)
+    get_filename_component(QT6_PLUGINS_DIR "${QT6_PLUGINS_DIR}/../plugins" ABSOLUTE)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DIR}/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${QT6_PLUGINS_DIR}/platforms/qwindows.dll"
-        "${RELEASE_DIR}/platforms/"
+            "${QT6_PLUGINS_DIR}/platforms/qwindows.dll"
+            "${RELEASE_DIR}/platforms/"
         COMMENT "Copying Qt6 platform plugins to Release folder")
 endif()

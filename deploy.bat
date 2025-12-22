@@ -11,18 +11,7 @@ if not exist "CMakeLists.txt" (
     exit /b 1
 )
 
-set VCPKG_TOOLCHAIN=
-if defined VCPKG_ROOT (
-    set VCPKG_TOOLCHAIN=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
-    echo Using vcpkg from VCPKG_ROOT: %VCPKG_ROOT%
-) else (
-    echo ERROR: vcpkg not found!
-    echo.
-    echo Please set VCPKG_ROOT environment variable to your vcpkg installation
-    echo.
-    pause
-    exit /b 1
-)
+
 
 echo [1/4] Cleaning previous build...
 if exist "build" (
@@ -37,16 +26,20 @@ echo [2/4] Configuring CMake build...
 mkdir build
 cd build
 
-cmake .. -DCMAKE_TOOLCHAIN_FILE="%VCPKG_TOOLCHAIN%" -DCMAKE_BUILD_TYPE=Release
+if not defined VCPKG_ROOT (
+    echo ERROR: VCPKG_ROOT environment variable is not set.
+    echo Please set VCPKG_ROOT to your vcpkg installation path.
+    pause
+    exit /b 1
+)
+
+set VCPKG_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%VCPKG_TOOLCHAIN_FILE%
 if errorlevel 1 (
     echo ERROR: CMake configuration failed!
     echo Please ensure:
-    echo   - Qt6 and RtMidi are installed via vcpkg
+    echo   - Qt6 and RtMidi are installed and available to CMake via vcpkg
     echo   - Visual Studio Build Tools are available
-    echo.
-    echo Install dependencies with:
-    echo   vcpkg install qt6[core,widgets,gui]:x64-windows
-    echo   vcpkg install rtmidi:x64-windows
     pause
     exit /b 1
 )
@@ -65,8 +58,8 @@ echo [4/4] Deployment completed successfully!
 echo.
 echo Output files location:
 echo   Executable: %CD%\Release\KtoMIDI.exe
-echo   Qt6 DLLs:   %CD%\Release\
-echo   Platforms:  %CD%\Release\platforms\
+echo   Qt6/RtMidi DLLs: %CD%\Release\
+echo   Platforms:      %CD%\Release\platforms\
 echo.
 
 pause

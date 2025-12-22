@@ -1,4 +1,6 @@
+
 build/
+generated/
 
 *.exe
 *.dll
