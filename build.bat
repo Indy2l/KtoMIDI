@@ -63,6 +63,42 @@ echo.
 set BUILD_DIR=build
 set BUILD_TYPE=Release
 
+:: Detect Visual Studio version
+set VS_GENERATOR=
+set VS_VERSION=
+
+:: Check for VS 2026 (version 18)
+if exist "%ProgramFiles%\Microsoft Visual Studio\2026" (
+    set VS_GENERATOR=Visual Studio 18 2026
+    set VS_VERSION=2026
+    goto :vs_found
+)
+
+:: Check for VS 2022 (version 17)
+if exist "%ProgramFiles%\Microsoft Visual Studio\2022" (
+    set VS_GENERATOR=Visual Studio 17 2022
+    set VS_VERSION=2022
+    goto :vs_found
+)
+
+:: Check for VS 2019 (version 16)
+if exist "%ProgramFiles%\Microsoft Visual Studio\2019" (
+    set VS_GENERATOR=Visual Studio 16 2019
+    set VS_VERSION=2019
+    goto :vs_found
+)
+
+:: No Visual Studio found
+echo [ERROR] Visual Studio not found!
+echo Please install Visual Studio 2019, 2022, or 2026 with C++ development tools.
+pause
+exit /b 1
+
+:vs_found
+echo [INFO] Detected Visual Studio %VS_VERSION%
+echo [INFO] Using generator: %VS_GENERATOR%
+echo.
+
 echo ========================================
 echo   Configuring CMake
 echo ========================================
@@ -78,6 +114,18 @@ if "%1"=="clean" (
     echo.
 )
 
+:: Check for generator mismatch
+if exist "%BUILD_DIR%\CMakeCache.txt" (
+    findstr /C:"CMAKE_GENERATOR:INTERNAL=%VS_GENERATOR%" "%BUILD_DIR%\CMakeCache.txt" >nul 2>&1
+    if !ERRORLEVEL! neq 0 (
+        echo [WARNING] Build directory was configured with a different generator.
+        echo [INFO] Cleaning build directory to avoid conflicts...
+        rmdir /s /q "%BUILD_DIR%"
+        echo [INFO] Build directory cleaned.
+        echo.
+    )
+)
+
 :: Create build directory
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
@@ -86,7 +134,7 @@ echo [INFO] Running CMake configuration...
 cmake -B "%BUILD_DIR%" -S . ^
     -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
     -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-    -G "Visual Studio 17 2022" ^
+    -G "%VS_GENERATOR%" ^
     -A x64
 
 if %ERRORLEVEL% neq 0 (
@@ -94,10 +142,10 @@ if %ERRORLEVEL% neq 0 (
     echo [ERROR] CMake configuration failed!
     echo.
     echo Troubleshooting tips:
-    echo 1. Ensure Visual Studio 2022 is installed
-    echo    If you have VS 2019, change the generator to "Visual Studio 16 2019"
+    echo 1. Ensure Visual Studio is properly installed with C++ development tools
     echo 2. Check that all dependencies are properly installed via vcpkg
     echo 3. Try running: vcpkg integrate install
+    echo 4. Try a clean build: build.bat clean
     echo.
     pause
     exit /b 1

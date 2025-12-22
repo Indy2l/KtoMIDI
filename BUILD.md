@@ -26,10 +26,11 @@ Output: `build\bin\Release\KtoMIDI.exe`
    - Download from: https://cmake.org/download/
    - Make sure to add CMake to your system PATH during installation
 
-2. **Visual Studio 2019 or 2022**
+2. **Visual Studio 2019 or 2022 (or 2026)**
    - Community Edition is sufficient
    - Install the "Desktop development with C++" workload
    - Download from: https://visualstudio.microsoft.com/downloads/
+   - The build script auto-detects your installed version
 
 3. **vcpkg** (C++ Package Manager)
    - Install following instructions at: https://github.com/microsoft/vcpkg
@@ -71,6 +72,8 @@ build.bat
 
 The script will automatically:
 - Check for CMake and vcpkg
+- Auto-detect your Visual Studio version (2019/2022/2026)
+- Handle generator mismatches (cleans if needed)
 - Install required dependencies (Qt6, RtMidi) via vcpkg manifest mode
 - Configure the project with CMake
 - Build the Release version
@@ -131,8 +134,8 @@ After a successful build, you'll find:
 ### VCPKG_ROOT not set
 - Set the environment variable as described above
 - Verify: `echo %VCPKG_ROOT%` should show your vcpkg path
-
-### Visual Studio not found
+2019, 2022, or 2026 with C++ development tools
+- The build script will auto-detect the installed version
 - Install Visual Studio with C++ development tools
 - If using VS 2019, edit `build.bat` and change the generator to "Visual Studio 16 2019"
 
@@ -141,7 +144,13 @@ After a successful build, you'll find:
 - Ensure you have a stable internet connection for the first build
 - Run: `vcpkg update` in your vcpkg directory
 - Delete the `build/` directory and try again
-- Check `vcpkg.json` is present in the project root
+- ChGenerator mismatch error
+- Run: `build.bat clean` to remove old CMake cache
+- ThGenerator mismatch error
+- Run: `build.bat clean` to remove old CMake cache
+- The script now auto-detects and cleans mismatches automatically
+
+### e script now auto-detects and cleans mismatches automaticallyhe project root
 
 ### Build fails with missing headers
 - Run: `vcpkg integrate install`

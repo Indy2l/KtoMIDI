@@ -7,9 +7,8 @@
   },
   "configurePresets": [
     {
-      "name": "default",
+      "name": "vs-base",
       "hidden": true,
-      "generator": "Visual Studio 17 2022",
       "architecture": {
         "value": "x64",
         "strategy": "set"
@@ -20,54 +19,40 @@
       }
     },
     {
-      "name": "debug",
-      "displayName": "Debug",
-      "description": "Debug build configuration",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/build/debug",
+      "name": "vs2022-debug",
+      "displayName": "VS2022 Debug",
+      "description": "Debug build with Visual Studio 2022",
+      "inherits": "vs-base",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "release",
-      "displayName": "Release",
-      "description": "Release build configuration",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/build/release",
+      "name": "vs2022-release",
+      "displayName": "VS2022 Release",
+      "description": "Release build with Visual Studio 2022",
+      "inherits": "vs-base",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "relwithdebinfo",
-      "displayName": "RelWithDebInfo",
-      "description": "Release with debug info build configuration",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/build/relwithdebinfo",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "displayName": "Debug Build",
-      "configurePreset": "debug",
+      "name": "vs2022-debug",
+      "displayName": "VS2022 Debug Build",
+      "configurePreset": "vs2022-debug",
       "configuration": "Debug"
     },
     {
-      "name": "release",
-      "displayName": "Release Build",
-      "configurePreset": "release",
+      "name": "vs2022-release",
+      "displayName": "VS2022 Release Build",
+      "configurePreset": "vs2022-release",
       "configuration": "Release"
-    },
-    {
-      "name": "relwithdebinfo",
-      "displayName": "RelWithDebInfo Build",
-      "configurePreset": "relwithdebinfo",
-      "configuration": "RelWithDebInfo"
     }
   ]
 }
