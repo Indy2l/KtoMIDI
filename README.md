@@ -43,39 +43,19 @@ The application runs in the background. Settings are saved automatically to `%AP
 
 ## Building
 
-### Prerequisites
+### Quick Start
 
-- Visual Studio 2019+ or Build Tools
-- CMake 3.20+
-- vcpkg package manager
-- Qt6 and RtMidi (installed via vcpkg)
+1. Install [vcpkg](https://github.com/microsoft/vcpkg) and set `VCPKG_ROOT` environment variable
+2. Install [CMake](https://cmake.org/download/) and [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/)
+3. Run `build.bat` from the project root directory
 
-### Install Dependencies
+That's it! The build script automatically installs all dependencies and builds the project.
 
-```bash
-vcpkg install qt6[core,widgets,gui]:x64-windows
-vcpkg install rtmidi:x64-windows
-```
+The built executable and all required DLLs will be in `build\bin\Release\KtoMIDI.exe`.
 
-### Build with deploy.bat (Easiest)
+### Detailed Instructions
 
-1. Set the `VCPKG_ROOT` environment variable to your vcpkg installation path
-2. Make sure you have installed the dependencies above with vcpkg.
-3. Run `deploy.bat` from the project root directory.
-
-The built executable and all required DLLs will be in `build\Release\KtoMIDI.exe`.
-
-### Manual Build (If deploy.bat fails)
-
-```bat
-mkdir build
-cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release
-```
-
-- This method uses the vcpkg toolchain file for dependency resolution.
-- The executable and dependencies will be in `build\Release\KtoMIDI.exe`.
+For detailed build instructions, troubleshooting, and advanced options, see [BUILD.md](BUILD.md).
 
 ## License
 
