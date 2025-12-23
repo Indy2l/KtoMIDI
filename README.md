@@ -1,13 +1,13 @@
 # KtoMIDI
 
-Windows utility for converting keyboard input to MIDI messages.
+Windows utility for converting keycode input to MIDI messages.
 
 ## Preview:
 ![Preview image](/images/preview.png?raw=true)
 
 ## Features
 
-- System-wide keyboard capture
+- System-wide keycode capture
 - Key press and release events to MIDI messages
 - Real-time input monitoring
 - Minimize to system tray
