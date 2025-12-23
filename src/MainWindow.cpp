@@ -42,12 +42,12 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentEditingVkCode(-1)
     , m_isEditingMapping(false)
     , m_waitingForKeyPress(false)
+    , m_isAdjustingColumnWidths(false)
     , m_currentMappingDialog(nullptr)
     , m_shouldAutoConnect(false)
 {
     setupUI();
     setupSystemTray();
-    qApp->installEventFilter(this);
     
     m_keyHook = new KeyHook(this);
     m_midiEngine = new MidiEngine(this);
@@ -88,7 +88,6 @@ MainWindow::~MainWindow()
     if (m_keyHook) {
         m_keyHook->uninstallHook();
     }
-    qApp->removeEventFilter(this);
 }
 
 void MainWindow::setupUI()
@@ -195,12 +194,22 @@ void MainWindow::setupMappingTable()
     m_mappingTable->setHorizontalHeaderLabels(headers);
     
     m_mappingTable->horizontalHeader()->setStretchLastSection(false);
-    m_mappingTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    QHeaderView *mappingHeader = m_mappingTable->horizontalHeader();
+    mappingHeader->setSectionResizeMode(QHeaderView::Interactive);
+    mappingHeader->setSectionsMovable(false);
+    mappingHeader->setHighlightSections(false);
+    mappingHeader->setMouseTracking(true);
+    connect(mappingHeader, &QHeaderView::sectionResized, this, &MainWindow::onMappingHeaderSectionResized);
     
     m_mappingTable->setColumnWidth(0, 150);
     m_mappingTable->setColumnWidth(1, 80);
     m_mappingTable->setColumnWidth(2, 80);
     m_mappingTable->setColumnWidth(3, 80);
+
+    QHeaderView *verticalHeader = m_mappingTable->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+    verticalHeader->setSectionsMovable(false);
+    verticalHeader->setHighlightSections(false);
     
     m_mappingTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_mappingTable->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -218,15 +227,15 @@ void MainWindow::setupMappingTable()
     connect(m_addMappingButton, &QPushButton::clicked, this, &MainWindow::addKeyMapping);
     buttonLayout->addWidget(m_addMappingButton);
     
-    m_removeMappingButton = new QPushButton("Remove Mapping");
-    m_removeMappingButton->setEnabled(false);
-    connect(m_removeMappingButton, &QPushButton::clicked, this, &MainWindow::removeKeyMapping);
-    buttonLayout->addWidget(m_removeMappingButton);
-    
     m_editMappingButton = new QPushButton("Edit Mapping");
     m_editMappingButton->setEnabled(false);
     connect(m_editMappingButton, &QPushButton::clicked, this, &MainWindow::editKeyMapping);
     buttonLayout->addWidget(m_editMappingButton);
+    
+    m_removeMappingButton = new QPushButton("Remove Mapping");
+    m_removeMappingButton->setEnabled(false);
+    connect(m_removeMappingButton, &QPushButton::clicked, this, &MainWindow::removeKeyMapping);
+    buttonLayout->addWidget(m_removeMappingButton);
     
     buttonLayout->addStretch();
     
@@ -543,7 +552,11 @@ void MainWindow::addKeyMapping()
 
                 if (reply == QMessageBox::Yes) {
                     m_keyMapping->updateMapping(entry);
-                    mappingChanged = true;
+                        m_mappingTable->horizontalHeader()->setSectionsMovable(true);
+                        QHeaderView *mappingHeader = m_mappingTable->horizontalHeader();
+                        mappingHeader->setMouseTracking(true);
+                        mappingHeader->installEventFilter(this);
+                        connect(mappingHeader, &QHeaderView::sectionResized, this, &MainWindow::onMappingHeaderSectionResized);
                 }
             } else {
                 m_keyMapping->addMapping(entry);
@@ -646,43 +659,6 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         }
     }
 
-    if (event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-    QPoint globalPos;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    globalPos = mouseEvent->globalPosition().toPoint();
-#else
-    globalPos = mouseEvent->globalPos();
-#endif
-        QWidget *clickedWidget = QApplication::widgetAt(globalPos);
-
-        bool clickedInsideMappingTable = false;
-        bool clickedInsideMappingDialog = false;
-        bool clickedOnMappingButton = false;
-
-        if (clickedWidget) {
-            if (m_mappingTable && (m_mappingTable == clickedWidget || m_mappingTable->isAncestorOf(clickedWidget))) {
-                clickedInsideMappingTable = true;
-            }
-            if (m_currentMappingDialog && (m_currentMappingDialog == clickedWidget || m_currentMappingDialog->isAncestorOf(clickedWidget))) {
-                clickedInsideMappingDialog = true;
-            }
-            if (clickedWidget == m_addMappingButton || clickedWidget == m_removeMappingButton || clickedWidget == m_editMappingButton) {
-                clickedOnMappingButton = true;
-            }
-        }
-
-        if (!clickedInsideMappingTable && !clickedInsideMappingDialog && !clickedOnMappingButton) {
-            if (m_mappingTable && m_mappingTable->selectionModel() && m_mappingTable->selectionModel()->hasSelection()) {
-                m_mappingTable->clearSelection();
-                    m_mappingTable->setCurrentCell(-1, -1);
-                    m_mappingTable->clearFocus();
-                    this->setFocus();
-                    onMappingTableSelectionChanged();
-            }
-        }
-    }
-
     return QMainWindow::eventFilter(watched, event);
 }
 
@@ -717,6 +693,37 @@ void MainWindow::updateSuppressedKeys()
     if (m_keyHook) {
         m_keyHook->setSuppressedRepeatKeys(suppressedKeys);
     }
+}
+
+void MainWindow::onMappingHeaderSectionResized(int logicalIndex, int oldSize, int newSize)
+{
+    Q_UNUSED(oldSize);
+    if (m_isAdjustingColumnWidths || !m_mappingTable) {
+        return;
+    }
+
+    QHeaderView *header = m_mappingTable->horizontalHeader();
+    int viewportWidth = m_mappingTable->viewport()->width();
+    if (viewportWidth <= 0) {
+        return;
+    }
+
+    int totalWidth = 0;
+    for (int column = 0; column < m_mappingTable->columnCount(); ++column) {
+        totalWidth += m_mappingTable->columnWidth(column);
+    }
+
+    if (totalWidth <= viewportWidth) {
+        return;
+    }
+
+    int overflow = totalWidth - viewportWidth;
+    int minSectionSize = header->minimumSectionSize();
+    int adjustedSize = qMax(newSize - overflow, minSectionSize);
+
+    m_isAdjustingColumnWidths = true;
+    m_mappingTable->setColumnWidth(logicalIndex, adjustedSize);
+    m_isAdjustingColumnWidths = false;
 }
 
 QIcon MainWindow::getApplicationIcon() const

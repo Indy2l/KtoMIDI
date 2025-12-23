@@ -59,6 +59,8 @@ private slots:
     
     void loadSettings();
     void saveSettings();
+
+    void onMappingHeaderSectionResized(int logicalIndex, int oldSize, int newSize);
     
     void setAutoStartEnabled(bool enabled);
     bool isAutoStartEnabled() const;
@@ -117,6 +119,7 @@ private:
     bool m_isEditingMapping;
     bool m_waitingForKeyPress;
     MappingDialog *m_currentMappingDialog;
+    bool m_isAdjustingColumnWidths;
     
     QString m_pendingAutoConnectPort;
     bool m_shouldAutoConnect;
