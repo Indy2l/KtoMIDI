@@ -4,16 +4,10 @@
 #include <windows.h>
 
 namespace {
-    constexpr int DEFAULT_CHANNEL = 0;
-    constexpr int DEFAULT_NOTE = 60;
-    constexpr int DEFAULT_VELOCITY = 100;
-    constexpr int DEFAULT_CONTROLLER = 1;
-    constexpr int DEFAULT_VALUE = 127;
-    
     constexpr int DIALOG_MIN_WIDTH = 500;
-    constexpr int DIALOG_MIN_HEIGHT = 650;
+    constexpr int DIALOG_MIN_HEIGHT = 460;
     constexpr int DIALOG_DEFAULT_WIDTH = 520;
-    constexpr int DIALOG_DEFAULT_HEIGHT = 680;
+    constexpr int DIALOG_DEFAULT_HEIGHT = 480;
 }
 
 MappingDialog::MappingDialog(QWidget *parent)

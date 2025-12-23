@@ -23,7 +23,6 @@
 #endif
 
 namespace {
-    constexpr int STATUS_MESSAGE_TIMEOUT_MS = 3000;
     constexpr int TRAY_MESSAGE_TIMEOUT_MS = 5000;
 }
 
@@ -34,8 +33,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_keyMapping(nullptr)
     , m_inputMonitor(nullptr)
     , m_trayIcon(nullptr)
-    , m_currentEditingVkCode(-1)
-    , m_isEditingMapping(false)
     , m_waitingForKeyPress(false)
     , m_isAdjustingColumnWidths(false)
     , m_currentMappingDialog(nullptr)
@@ -96,7 +93,7 @@ void MainWindow::setupUI()
     m_tabWidget = new QTabWidget(this);
     
     QLabel *versionLabel = new QLabel(QString("v%1").arg(KTOMIDI_VERSION_STRING));
-    versionLabel->setStyleSheet("color: gray; font-size: 10pt; padding-right: 8px;");
+    versionLabel->setStyleSheet("color: #6C757D; font-size: 9pt; padding-right: 8px;");
     m_tabWidget->setCornerWidget(versionLabel, Qt::TopRightCorner);
     
     setCentralWidget(m_tabWidget);
@@ -153,7 +150,7 @@ void MainWindow::setupMidiControls()
     midiLayout->addStretch();
     
     m_midiStatusLabel = new QLabel("No port selected");
-    m_midiStatusLabel->setStyleSheet("color: red; font-weight: bold;");
+    m_midiStatusLabel->setStyleSheet("font-weight: bold; color: #DC3545;");
     midiLayout->addWidget(m_midiStatusLabel);
     
     midiVerticalLayout->addLayout(midiLayout);
@@ -381,14 +378,14 @@ void MainWindow::onMidiPortChanged(int index)
 void MainWindow::onMidiPortOpened(const QString &portName)
 {
     m_midiStatusLabel->setText(QString("Connected: %1").arg(portName));
-    m_midiStatusLabel->setStyleSheet("color: green; font-weight: bold;");
+    m_midiStatusLabel->setStyleSheet("font-weight: bold; color: #28A745;");
     saveSettings();
 }
 
 void MainWindow::onMidiPortClosed()
 {
     m_midiStatusLabel->setText("Not connected");
-    m_midiStatusLabel->setStyleSheet("color: red; font-weight: bold;");
+    m_midiStatusLabel->setStyleSheet("font-weight: bold; color: #DC3545;");
     saveSettings();
 }
 
@@ -527,7 +524,6 @@ void MainWindow::addKeyMapping()
     if (dialog->exec() == QDialog::Accepted) {
         KeyMappingEntry entry = dialog->getMappingEntry();
         if (entry.vkCode > 0) {
-            bool mappingChanged = false;
             if (m_keyMapping->hasMapping(entry.vkCode)) {
                 QMessageBox::StandardButton reply = QMessageBox::question(
                     this,
@@ -540,17 +536,11 @@ void MainWindow::addKeyMapping()
 
                 if (reply == QMessageBox::Yes) {
                     m_keyMapping->updateMapping(entry);
-                        m_mappingTable->horizontalHeader()->setSectionsMovable(true);
-                        QHeaderView *mappingHeader = m_mappingTable->horizontalHeader();
-                        mappingHeader->setMouseTracking(true);
-                        mappingHeader->installEventFilter(this);
-                        connect(mappingHeader, &QHeaderView::sectionResized, this, &MainWindow::onMappingHeaderSectionResized);
+                    updateMappingTable();
+                    saveSettings();
                 }
             } else {
                 m_keyMapping->addMapping(entry);
-                mappingChanged = true;
-            }
-            if (mappingChanged) {
                 updateMappingTable();
                 saveSettings();
             }

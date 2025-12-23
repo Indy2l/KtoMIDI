@@ -112,8 +112,6 @@ private:
     QPushButton *m_removeMappingButton;
     QPushButton *m_editMappingButton;
     
-    int m_currentEditingVkCode;
-    bool m_isEditingMapping;
     bool m_waitingForKeyPress;
     MappingDialog *m_currentMappingDialog;
     bool m_isAdjustingColumnWidths;

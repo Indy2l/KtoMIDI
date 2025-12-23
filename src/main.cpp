@@ -31,7 +31,10 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     
     app.setStyle("Windows");
-    app.setStyleSheet("QWidget { outline: none; } QWidget:focus { outline: none; }");
+    app.setStyleSheet(
+        "QCheckBox::indicator:!checked { background-color: #222; border: 1px solid #555; } "
+        "QCheckBox::indicator:!checked:pressed { background-color: #444; border: 1px solid #666; }"
+    );
     
     QSharedMemory sharedMemory(SINGLE_INSTANCE_KEY);
     if (!sharedMemory.create(1)) {

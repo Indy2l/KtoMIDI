@@ -10,10 +10,8 @@
 
 namespace {
     constexpr int CONSOLE_FONT_SIZE = 9;
-    constexpr int STATUS_MESSAGE_TIMEOUT_MS = 3000;
-    const QString STATUS_READY_STYLE = "font-weight: bold; color: green;";
-    const QString STATUS_PAUSED_STYLE = "font-weight: bold; color: orange;";
-    const QString STATUS_DISABLED_STYLE = "font-weight: bold; color: red;";
+    const QString STATUS_READY_STYLE = "font-weight: bold; color: #28A745;";
+    const QString STATUS_PAUSED_STYLE = "font-weight: bold; color: #FFC107;";
 }
 
 InputMonitor::InputMonitor(QWidget *parent)
