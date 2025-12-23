@@ -198,7 +198,6 @@ void MainWindow::setupMappingTable()
     mappingHeader->setSectionResizeMode(QHeaderView::Interactive);
     mappingHeader->setSectionsMovable(false);
     mappingHeader->setHighlightSections(false);
-    mappingHeader->setMouseTracking(true);
     connect(mappingHeader, &QHeaderView::sectionResized, this, &MainWindow::onMappingHeaderSectionResized);
     
     m_mappingTable->setColumnWidth(0, 150);
