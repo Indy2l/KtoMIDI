@@ -32,7 +32,7 @@ Output: `build\bin\Release\KtoMIDI.exe`
 
 3. **vcpkg** (C++ package manager)
    - Instructions: https://github.com/microsoft/vcpkg
-   - Quick setup:
+   - Quick setup (cd into the folder where you want to install vcpkg first):
      ```batch
      git clone https://github.com/microsoft/vcpkg.git
      cd vcpkg
