@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Project definition
 project(KtoMIDI
-    VERSION 1.0.0
+    VERSION 1.0.3
     DESCRIPTION "Keycode to MIDI converter"
     LANGUAGES CXX
 )

@@ -100,7 +100,7 @@ void MainWindow::setupUI()
     resize(800, 600);
     setMinimumSize(600, 400);
     
-    statusBar()->showMessage("Ready");
+    setStatusBar(nullptr);
     
     m_tabWidget = new QTabWidget(this);
     
@@ -382,7 +382,6 @@ void MainWindow::onMidiPortOpened(const QString &portName)
 {
     m_midiStatusLabel->setText(QString("Connected: %1").arg(portName));
     m_midiStatusLabel->setStyleSheet("color: green; font-weight: bold;");
-    statusBar()->showMessage(QString("MIDI: Connected to %1").arg(portName), STATUS_MESSAGE_TIMEOUT_MS);
     saveSettings();
 }
 
@@ -390,7 +389,6 @@ void MainWindow::onMidiPortClosed()
 {
     m_midiStatusLabel->setText("Not connected");
     m_midiStatusLabel->setStyleSheet("color: red; font-weight: bold;");
-    statusBar()->showMessage("MIDI: Disconnected", STATUS_MESSAGE_TIMEOUT_MS);
     saveSettings();
 }
 
@@ -575,6 +573,7 @@ void MainWindow::removeKeyMapping()
     m_keyMapping->removeMapping(vkCode);
     updateMappingTable();
     
+    m_mappingTable->clearSelection();
     m_removeMappingButton->setEnabled(false);
     m_editMappingButton->setEnabled(false);
 }
@@ -659,6 +658,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 
         bool clickedInsideMappingTable = false;
         bool clickedInsideMappingDialog = false;
+        bool clickedOnMappingButton = false;
 
         if (clickedWidget) {
             if (m_mappingTable && (m_mappingTable == clickedWidget || m_mappingTable->isAncestorOf(clickedWidget))) {
@@ -667,9 +667,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
             if (m_currentMappingDialog && (m_currentMappingDialog == clickedWidget || m_currentMappingDialog->isAncestorOf(clickedWidget))) {
                 clickedInsideMappingDialog = true;
             }
+            if (clickedWidget == m_addMappingButton || clickedWidget == m_removeMappingButton || clickedWidget == m_editMappingButton) {
+                clickedOnMappingButton = true;
+            }
         }
 
-        if (!clickedInsideMappingTable && !clickedInsideMappingDialog) {
+        if (!clickedInsideMappingTable && !clickedInsideMappingDialog && !clickedOnMappingButton) {
             if (m_mappingTable && m_mappingTable->selectionModel() && m_mappingTable->selectionModel()->hasSelection()) {
                 m_mappingTable->clearSelection();
                     m_mappingTable->setCurrentCell(-1, -1);

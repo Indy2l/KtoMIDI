@@ -144,6 +144,17 @@ echo   Building Project
 echo ========================================
 echo.
 
+:: Check if KtoMIDI is running and terminate it
+echo [INFO] Checking for running KtoMIDI instances...
+tasklist /FI "IMAGENAME eq KtoMIDI.exe" 2>NUL | find /I /N "KtoMIDI.exe">NUL
+if "%ERRORLEVEL%"=="0" (
+    echo [INFO] KtoMIDI is running, terminating...
+    taskkill /F /IM KtoMIDI.exe >NUL 2>&1
+    timeout /t 1 /nobreak >NUL
+    echo [INFO] KtoMIDI terminated.
+)
+echo.
+
 :: Build with CMake
 echo [INFO] Building %BUILD_TYPE% configuration...
 cmake --build "%BUILD_DIR%" --config %BUILD_TYPE% --parallel
@@ -177,7 +188,4 @@ if /i "!RUN_APP!"=="y" (
     start "" "%BUILD_DIR%\bin\%BUILD_TYPE%\KtoMIDI.exe"
 )
 
-echo.
-echo Press any key to exit...
-pause >nul
 exit /b 0
