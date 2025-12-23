@@ -14,7 +14,6 @@
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QGroupBox>
-#include <QSplitter>
 #include <QPointer>
 
 #include "KeyHook.h"
@@ -79,11 +78,9 @@ private:
     void updateMidiPortStatus();
     void updateSuppressedKeys();
     
-    QString getKeyName(int vkCode) const;
     void showMessage(const QString &title, const QString &message, QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information);
     
     QIcon getApplicationIcon() const;
-    QIcon getApplicationIcon(const QSize &size) const;
 
     KeyHook *m_keyHook;
     MidiEngine *m_midiEngine;

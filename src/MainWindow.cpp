@@ -3,17 +3,12 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include <QCoreApplication>
-#include <QtGlobal>
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QHeaderView>
 #include <QTableWidgetItem>
-#include <QSplitter>
 #include <QStandardPaths>
 #include <QDir>
-#include <QFileDialog>
-#include <QTimer>
-#include <QStatusBar>
 #include <QJsonDocument>
 #include <QFile>
 #include <QSettings>
@@ -59,16 +54,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_midiEngine, &MidiEngine::errorOccurred, this, &MainWindow::onMidiError);
     connect(m_keyMapping, &KeyMapping::midiMessageTriggered, this, &MainWindow::onMidiMessageTriggered);
     connect(m_keyMapping, &KeyMapping::mappingAdded, this, [this](const KeyMappingEntry &) { 
-        updateSuppressedKeys(); 
-        saveSettings();
+        updateSuppressedKeys();
     });
     connect(m_keyMapping, &KeyMapping::mappingRemoved, this, [this](int) { 
-        updateSuppressedKeys(); 
-        saveSettings();
+        updateSuppressedKeys();
     });
     connect(m_keyMapping, &KeyMapping::mappingUpdated, this, [this](const KeyMappingEntry &) { 
-        updateSuppressedKeys(); 
-        saveSettings();
+        updateSuppressedKeys();
     });
     
     if (!m_keyHook->installHook()) {
@@ -249,7 +241,7 @@ void MainWindow::setupSystemTray()
     }
     
     m_trayIcon = new QSystemTrayIcon(this);
-    m_trayIcon->setIcon(getApplicationIcon(QSize(16, 16)));
+    m_trayIcon->setIcon(getApplicationIcon());
     m_trayIcon->setToolTip("KtoMIDI");
     
     m_trayMenu = new QMenu(this);
@@ -414,10 +406,7 @@ void MainWindow::updateMidiPortStatus()
     }
 }
 
-QString MainWindow::getKeyName(int vkCode) const
-{
-    return KeyUtils::getKeyName(vkCode);
-}
+
 
 void MainWindow::showMessage(const QString &title, const QString &message, QSystemTrayIcon::MessageIcon icon)
 {
@@ -563,6 +552,7 @@ void MainWindow::addKeyMapping()
             }
             if (mappingChanged) {
                 updateMappingTable();
+                saveSettings();
             }
         }
     }
@@ -584,6 +574,7 @@ void MainWindow::removeKeyMapping()
     int vkCode = vkCodeItem->text().toInt();
     m_keyMapping->removeMapping(vkCode);
     updateMappingTable();
+    saveSettings();
     
     m_mappingTable->clearSelection();
     m_removeMappingButton->setEnabled(false);
@@ -627,6 +618,7 @@ void MainWindow::editKeyMapping()
                 
                 m_keyMapping->replaceMapping(originalVkCode, updatedEntry);
                 updateMappingTable();
+                saveSettings();
             }
         }
         
@@ -746,16 +738,7 @@ QIcon MainWindow::getApplicationIcon() const
     return cachedIcon;
 }
 
-QIcon MainWindow::getApplicationIcon(const QSize &size) const
-{
-    QIcon baseIcon = getApplicationIcon();
-    if (baseIcon.isNull()) {
-        return baseIcon;
-    }
-    
-    QPixmap pixmap = baseIcon.pixmap(size);
-    return QIcon(pixmap);
-}
+
 
 void MainWindow::setAutoStartEnabled(bool enabled)
 {
