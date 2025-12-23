@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Enable vcpkg manifest mode
-set(VCPKG_MANIFEST_MODE ON)
-
 # Project definition
 project(KtoMIDI
     VERSION 1.0.0
@@ -135,6 +132,22 @@ if(WIN32)
             "$<TARGET_FILE:${PROJECT_NAME}>"
         COMMENT "Running windeployqt to copy Qt dependencies..."
     )
+    
+    # Copy additional Qt dependencies that windeployqt may miss
+    set(ADDITIONAL_DLLS
+        "pcre2-16.dll"
+        "double-conversion.dll"
+    )
+    
+    foreach(DLL_NAME ${ADDITIONAL_DLLS})
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${QT6_BIN_DIR}/${DLL_NAME}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
+            COMMENT "Copying ${DLL_NAME}..."
+            VERBATIM
+        )
+    endforeach()
 endif()
 
 # Print configuration

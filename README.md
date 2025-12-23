@@ -43,13 +43,15 @@ The application runs in the background. Settings are saved automatically to `%AP
 
 ## Building
 
-### Quick Start
+### Prerequisites
 
 1. Install [vcpkg](https://github.com/microsoft/vcpkg) and set `VCPKG_ROOT` environment variable
-2. Install [CMake](https://cmake.org/download/) and [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/)
-3. Run `build.bat` from the project root directory
-
-That's it! The build script automatically installs all dependencies and builds the project.
+2. Install dependencies:
+   ```
+   vcpkg install qtbase:x64-windows rtmidi:x64-windows
+   ```
+3. Install [CMake](https://cmake.org/download/) and [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/)
+4. Run `build.bat`
 
 The built executable and all required DLLs will be in `build\bin\Release\KtoMIDI.exe`.
 

@@ -10,7 +10,11 @@ For experienced developers:
 # One-time setup
 git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
 C:\vcpkg\bootstrap-vcpkg.bat
+C:\vcpkg\vcpkg integrate install
 setx VCPKG_ROOT "C:\vcpkg"
+
+# Install dependencies
+vcpkg install qtbase:x64-windows rtmidi:x64-windows
 
 # Build (restart terminal after setting VCPKG_ROOT)
 build.bat
@@ -42,6 +46,10 @@ Output: `build\bin\Release\KtoMIDI.exe`
      vcpkg integrate install
      ```
    - Set the `VCPKG_ROOT` environment variable to your vcpkg installation directory
+   - **Install required packages:**
+     ```batch
+     vcpkg install qtbase:x64-windows rtmidi:x64-windows
+     ```
 
 ## Setting Up Environment
 
@@ -72,14 +80,13 @@ build.bat
 
 The script will automatically:
 - Check for CMake and vcpkg
-- Auto-detect your Visual Studio version (2019/2022/2026)
+- Auto-detect your Visual Studio version (2019/2022)
 - Handle generator mismatches (cleans if needed)
-- Install required dependencies (Qt6, RtMidi) via vcpkg manifest mode
 - Configure the project with CMake
 - Build the Release version
 - Deploy Qt dependencies using windeployqt
 
-**Note:** This project uses vcpkg manifest mode with `vcpkg.json`. Dependencies are automatically installed during the CMake configuration phase - no manual vcpkg installation needed!
+**Note:** Make sure you have installed Qt6 and RtMidi via vcpkg first!
 
 ### Clean Build
 
