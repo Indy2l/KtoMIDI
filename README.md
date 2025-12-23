@@ -1,6 +1,6 @@
 # KtoMIDI
 
-Windows utility for converting keycode input to MIDI messages!
+Windows utility for converting keyboard input to MIDI messages.
 
 ## Preview:
 ![Preview image](/images/preview.png?raw=true)
@@ -20,7 +20,7 @@ Windows utility for converting keycode input to MIDI messages!
 
 ## Installation
 
-### Option 1: Download Release (Recommended)
+### Download Release (Recommended)
 
 1. Download the latest release from the [Releases](https://github.com/Indy2l/KtoMIDI/releases) page
 2. Extract the ZIP file
@@ -28,7 +28,7 @@ Windows utility for converting keycode input to MIDI messages!
 
 All dependencies are included.
 
-### Option 2: Build from Source
+### Build from Source
 
 See the [Building](#building) section below.
 
@@ -53,7 +53,7 @@ The application runs in the background. Settings are saved automatically to `%AP
 3. Install [CMake](https://cmake.org/download/) and [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/)
 4. Run `build.bat`
 
-The built executable and all required DLLs will be in `build\bin\Release\KtoMIDI.exe`.
+Output: `build\bin\Release\KtoMIDI.exe`
 
 ### Detailed Instructions
 
