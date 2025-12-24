@@ -8,10 +8,10 @@ Windows utility for converting keycode input to MIDI messages.
 ## Features
 
 - System-wide keycode capture
-- Key press and release events to MIDI messages
-- Real-time input monitoring
+- Key press/release events to MIDI messages
+- Input monitoring
 - Minimize to system tray
-- Persistent mappings and settings
+- All settings and mappings automatically save
 
 ## Requirements
 
@@ -20,44 +20,48 @@ Windows utility for converting keycode input to MIDI messages.
 
 ## Installation
 
-### Download Release (Recommended)
-
-1. Download the latest release from the [Releases](https://github.com/Indy2l/KtoMIDI/releases) page
-2. Extract the ZIP file
-3. Run `KtoMIDI.exe`
-
-All dependencies are included.
-
-### Build from Source
-
-See the [Building](#building) section below.
+Download the latest release from the [Releases](https://github.com/Indy2l/KtoMIDI/releases) page and run `KtoMIDI.exe`.
+Or [build from source](#building) if you want.
 
 ## Usage
 
-1. Run `KtoMIDI.exe`
-2. Select your MIDI output port from the dropdown
-3. Click "Add Mapping" to create keycode-to-MIDI mappings
-4. Configure MIDI message type, channel, note/controller, and velocity
-
-The application runs in the background. Settings are saved automatically to `%APPDATA%\KtoMIDI Project\KtoMIDI\`.
+Run the app.
+Pick your MIDI output. Use loopMIDI for virtual MIDI ports.
+Add some mappings and set the MIDI channel, note/CC, and velocity as needed.
+The app sits in the background and saves settings to `%APPDATA%\KtoMIDI Project\KtoMIDI\`.
 
 ## Building
 
 ### Prerequisites
 
-1. Install [vcpkg](https://github.com/microsoft/vcpkg) and set `VCPKG_ROOT` environment variable
-2. Install dependencies:
+- [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/) with C++ development tools
+- [CMake 3.20+](https://cmake.org/download/)
+- [vcpkg](https://github.com/microsoft/vcpkg)
+
+1. **Set up vcpkg**
+   ```powershell
+   git clone https://github.com/microsoft/vcpkg.git
+   cd vcpkg
+   .\bootstrap-vcpkg.bat
+   vcpkg integrate install
    ```
-   vcpkg install qtbase:x64-windows rtmidi:x64-windows
+
+2. **Install dependencies**
+   ```powershell
+   vcpkg install qtbase[core,gui,widgets]:x64-windows rtmidi:x64-windows
    ```
-3. Install [CMake](https://cmake.org/download/) and [Visual Studio 2019+](https://visualstudio.microsoft.com/downloads/)
-4. Run `build.bat`
 
-Output: `build\bin\Release\KtoMIDI.exe`
+## Using build.bat
 
-### Detailed Instructions
+Just run build.bat. The .exe will be at "KtoMIDI\build\bin\Release\KtoMIDI.exe"
 
-For detailed build instructions, troubleshooting, and advanced options, see [BUILD.md](BUILD.md).
+## Manual Build (Alternative)
+```powershell
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
+cmake --build build --config Release
+```
+
+Clean rebuild: `.\build.bat clean`
 
 ## License
 
